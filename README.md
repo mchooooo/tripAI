@@ -56,9 +56,9 @@ OpenAI API를 활용해 추천 결과와 추천 이유를 생성합니다.
 
 관련 코드는 아래에 있습니다.
 
-- [RecommendationAiClient.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationAiClient.java)
-- [MockRecommendationAiClient.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/MockRecommendationAiClient.java)
-- [OpenAiRecommendationClient.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/OpenAiRecommendationClient.java)
+- [RecommendationAiClient.java](/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationAiClient.java)
+- [MockRecommendationAiClient.java](/src/main/java/com/my/proj/tripai/recommendation/service/MockRecommendationAiClient.java)
+- [OpenAiRecommendationClient.java](/src/main/java/com/my/proj/tripai/recommendation/service/OpenAiRecommendationClient.java)
 
 ## Project Structure
 
@@ -146,9 +146,7 @@ Response
 OpenAI 호출 비용을 줄이기 위해 추천 생성 흐름에 아래 최적화를 적용했습니다.
 
 - `promptSummary`는 AI가 만들지 않고 서버에서 생성합니다.
-- `reason`은 짧은 문장으로 제한하고, 비거나 너무 길면 서버에서 보정합니다.
-- 선택형 입력은 프롬프트에 한글 자연어 대신 코드값으로 전달합니다.
-  - 예: `가족 -> FAMILY`, `중간 -> MID`, `힐링 -> HEALING`
+- `reason`은 짧은 문장으로 제한하고, 너무 길면 서버에서 보정합니다.
 - 선택하지 않은 값은 프롬프트에서 아예 생략합니다.
 - `userPrompt`는 최대 200자로 제한하고, OpenAI에 전달할 때도 200자로 한 번 더 잘라 보냅니다.
 - OpenAI 프롬프트는 JSON 응답만 반환하도록 고정해 불필요한 출력 토큰을 줄였습니다.
@@ -163,11 +161,11 @@ OpenAI 호출 비용을 줄이기 위해 추천 생성 흐름에 아래 최적�
 
 관련 코드는 아래에 있습니다.
 
-- [RecommendationService.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationService.java)
-- [OpenAiRecommendationClient.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/OpenAiRecommendationClient.java)
-- [RecommendationRequestCacheKeyGenerator.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationRequestCacheKeyGenerator.java)
-- [UserPromptTagExtractor.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/service/UserPromptTagExtractor.java)
-- [RecommendationCache.java](/src/main/src/main/java/com/my/proj/tripai/recommendation/domain/RecommendationCache.java)
+- [RecommendationService.java](/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationService.java)
+- [OpenAiRecommendationClient.java](/src/main/java/com/my/proj/tripai/recommendation/service/OpenAiRecommendationClient.java)
+- [RecommendationRequestCacheKeyGenerator.java](/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationRequestCacheKeyGenerator.java)
+- [UserPromptTagExtractor.java](/src/main/java/com/my/proj/tripai/recommendation/service/UserPromptTagExtractor.java)
+- [RecommendationCache.java](/src/main/java/com/my/proj/tripai/recommendation/domain/RecommendationCache.java)
 
 ## Test
 
