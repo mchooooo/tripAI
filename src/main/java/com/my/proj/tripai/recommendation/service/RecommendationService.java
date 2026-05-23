@@ -10,11 +10,13 @@ import com.my.proj.tripai.recommendation.repository.RecommendationRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RecommendationService {
@@ -25,6 +27,7 @@ public class RecommendationService {
     private final RecommendationRepository recommendationRepository;
     private final RecommendationCacheRepository recommendationCacheRepository;
     private final RecommendationAiClient recommendationAiClient;
+    private final RecommendationMetrics recommendationMetrics;
 
     @Transactional
     public RecommendationResponse createRecommendation(RecommendationCreateRequest request) {
@@ -40,10 +43,13 @@ public class RecommendationService {
             );
         }
         if (cachedRecommendation != null) {
+            recommendationMetrics.recordCacheReuse(RecommendationCacheType.valueOf(cachedRecommendation.getCacheType()));
             return saveRecommendation(request, cachedRecommendation.getDestination(), cachedRecommendation.getReason());
         }
 
-        RecommendationDraft draft = recommendationAiClient.generateRecommendation(request);
+        RecommendationDraft draft = recommendationMetrics.recordAiRequest(
+                () -> recommendationAiClient.generateRecommendation(request)
+        );
         String normalizedReason = buildReason(request, draft);
         // 새 응답은 두 캐시에 모두 저장해 이후에는 원문/태그 어느 쪽으로도 재사용 가능하게 둔다.
         cacheRecommendation(
@@ -96,13 +102,16 @@ public class RecommendationService {
 
     // 캐시 테이블은 TTL이 남아 있는 최신 스냅샷 한 건만 재사용한다.
     private RecommendationCache findCachedRecommendation(RecommendationCacheType cacheType, String cacheKey) {
-        return recommendationCacheRepository
+        RecommendationCache recommendationCache = recommendationCacheRepository
                 .findTopByCacheTypeAndCacheKeyAndExpiresAtAfterOrderByCreatedAtDesc(
                         cacheType.name(),
                         cacheKey,
                         LocalDateTime.now()
                 )
                 .orElse(null);
+        recommendationMetrics.recordCacheLookup(cacheType, recommendationCache != null);
+        logTagCacheLookup(cacheType, cacheKey, recommendationCache);
+        return recommendationCache;
     }
 
     private void cacheRecommendation(
@@ -121,6 +130,29 @@ public class RecommendationService {
                 .createdAt(now)
                 .build();
         recommendationCacheRepository.save(recommendationCache);
+        recommendationMetrics.recordCachePopulate(cacheType);
+    }
+
+    private void logTagCacheLookup(
+            RecommendationCacheType cacheType,
+            String cacheKey,
+            RecommendationCache recommendationCache
+    ) {
+        if (cacheType != RecommendationCacheType.TAG) {
+            return;
+        }
+
+        if (recommendationCache == null) {
+            log.info("tag-cache miss key={}", cacheKey);
+            return;
+        }
+
+        log.info(
+                "tag-cache hit key={} destination={} cacheCreatedAt={}",
+                cacheKey,
+                recommendationCache.getDestination(),
+                recommendationCache.getCreatedAt()
+        );
     }
 
     // promptSummary는 AI 응답이 아니라 서버 규칙으로 생성해 토큰 사용량을 줄인다.

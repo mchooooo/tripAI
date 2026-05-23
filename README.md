@@ -29,7 +29,6 @@ OpenAI API를 활용해 추천 결과와 추천 이유를 생성합니다.
 - H2 Database
 - Spring Validation
 - Spring AI
-- Swagger UI (`springdoc-openapi`)
 - Lombok
 
 ## Features
@@ -158,6 +157,7 @@ OpenAI 호출 비용을 줄이기 위해 추천 생성 흐름에 아래 최적�
 - `태그 기반 캐시`
   - `userPrompt`에서 추출한 태그를 기준으로 더 넓게 재사용합니다.
 - 둘 다 miss일 때만 OpenAI를 호출합니다.
+- 캐시 효과 측정을 위해 Actuator/Prometheus 지표를 노출합니다.
 
 관련 코드는 아래에 있습니다.
 
@@ -179,4 +179,6 @@ OpenAI 호출 비용을 줄이기 위해 추천 생성 흐름에 아래 최적�
 - OpenAI 응답은 JSON 문자열 형식으로 받도록 프롬프트를 구성해두었습니다.
 - OpenAI 호출 시 선택형 입력은 코드값으로 압축해 전달하고, 비어 있으면 프롬프트에서 생략합니다.
 - 추천 캐시는 `recommendation_cache` 테이블에 스냅샷 형태로 저장하며, 원문 기반 캐시와 태그 기반 캐시를 함께 사용합니다.
+- 캐시 지표는 `/actuator/metrics`, `/actuator/prometheus`에서 확인할 수 있습니다.
+- 주요 지표는 `tripai.recommendation.cache.lookup.total`, `tripai.recommendation.cache.reuse.total`, `tripai.recommendation.cache.populate.total`, `tripai.recommendation.ai.request.total`, `tripai.recommendation.ai.request.duration`입니다.
 - MVP 단계이므로 인증/인가, 사용자 계정, 운영 DB, 외부 여행 데이터 연동은 아직 포함하지 않았습니다.

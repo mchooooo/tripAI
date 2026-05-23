@@ -35,6 +35,9 @@ class RecommendationServiceTest {
     @Mock
     private RecommendationAiClient recommendationAiClient;
 
+    @Mock
+    private RecommendationMetrics recommendationMetrics;
+
     @InjectMocks
     private RecommendationService recommendationService;
 
@@ -59,6 +62,8 @@ class RecommendationServiceTest {
                 .willReturn(java.util.Optional.empty());
         given(recommendationAiClient.generateRecommendation(request))
                 .willReturn(new RecommendationDraft("공주", "공주는 힐링 여행에 잘 맞는 추천지입니다."));
+        given(recommendationMetrics.recordAiRequest(org.mockito.ArgumentMatchers.any()))
+                .willAnswer(invocation -> ((java.util.concurrent.Callable<RecommendationDraft>) invocation.getArgument(0)).call());
         given(recommendationCacheRepository.save(org.mockito.ArgumentMatchers.any(RecommendationCache.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(recommendationRepository.save(org.mockito.ArgumentMatchers.any(Recommendation.class)))
@@ -97,6 +102,8 @@ class RecommendationServiceTest {
                 .willReturn(java.util.Optional.empty());
         given(recommendationAiClient.generateRecommendation(request))
                 .willReturn(new RecommendationDraft("공주", LONG_REASON));
+        given(recommendationMetrics.recordAiRequest(org.mockito.ArgumentMatchers.any()))
+                .willAnswer(invocation -> ((java.util.concurrent.Callable<RecommendationDraft>) invocation.getArgument(0)).call());
         given(recommendationCacheRepository.save(org.mockito.ArgumentMatchers.any(RecommendationCache.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(recommendationRepository.save(org.mockito.ArgumentMatchers.any(Recommendation.class)))
@@ -129,6 +136,8 @@ class RecommendationServiceTest {
                 .willReturn(java.util.Optional.empty());
         given(recommendationAiClient.generateRecommendation(request))
                 .willReturn(new RecommendationDraft("공주", " "));
+        given(recommendationMetrics.recordAiRequest(org.mockito.ArgumentMatchers.any()))
+                .willAnswer(invocation -> ((java.util.concurrent.Callable<RecommendationDraft>) invocation.getArgument(0)).call());
         given(recommendationCacheRepository.save(org.mockito.ArgumentMatchers.any(RecommendationCache.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(recommendationRepository.save(org.mockito.ArgumentMatchers.any(Recommendation.class)))
@@ -172,6 +181,7 @@ class RecommendationServiceTest {
         verify(recommendationAiClient, never()).generateRecommendation(request);
         verify(recommendationRepository).save(org.mockito.ArgumentMatchers.any(Recommendation.class));
         verify(recommendationCacheRepository, never()).save(org.mockito.ArgumentMatchers.any(RecommendationCache.class));
+        verify(recommendationMetrics).recordCacheReuse(RecommendationCacheType.TEXT);
     }
 
     @Test
@@ -210,6 +220,7 @@ class RecommendationServiceTest {
         verify(recommendationAiClient, never()).generateRecommendation(request);
         verify(recommendationRepository).save(org.mockito.ArgumentMatchers.any(Recommendation.class));
         verify(recommendationCacheRepository, never()).save(org.mockito.ArgumentMatchers.any(RecommendationCache.class));
+        verify(recommendationMetrics).recordCacheReuse(RecommendationCacheType.TAG);
     }
 
     @Test
@@ -233,6 +244,8 @@ class RecommendationServiceTest {
                 .willReturn(java.util.Optional.empty());
         given(recommendationAiClient.generateRecommendation(request))
                 .willReturn(new RecommendationDraft("공주", "공주는 힐링 여행에 잘 맞는 추천지입니다."));
+        given(recommendationMetrics.recordAiRequest(org.mockito.ArgumentMatchers.any()))
+                .willAnswer(invocation -> ((java.util.concurrent.Callable<RecommendationDraft>) invocation.getArgument(0)).call());
         given(recommendationCacheRepository.save(org.mockito.ArgumentMatchers.any(RecommendationCache.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(recommendationRepository.save(org.mockito.ArgumentMatchers.any(Recommendation.class)))
