@@ -159,6 +159,20 @@ OpenAI 호출 비용을 줄이기 위해 추천 생성 흐름에 아래 최적�
 - 둘 다 miss일 때만 OpenAI를 호출합니다.
 - 캐시 효과 측정을 위해 Actuator/Prometheus 지표를 노출합니다.
 
+적용 결과
+
+- `AS-IS`
+  - 11개 요청
+  - 입력 `1.479K` + 출력 `1.02K` = 총 `2.499K`
+- `TO-BE` `태그 히트 없음`
+  - 11개 요청
+  - 입력 `1.46K` + 출력 `0.404K` = 총 `1.864K`
+  - `AS-IS` 대비 약 `25.4%` 절감
+- `TO-BE` `태그 히트 45%` `(11개 요청 중 5개 히트)`
+  - 실제 AI 호출 6개 요청
+  - 입력 `0.724K` + 출력 `0.229K` = 총 `0.953K`
+  - `AS-IS` 대비 약 `61.9%` 절감
+
 관련 코드는 아래에 있습니다.
 
 - [RecommendationService.java](/src/main/java/com/my/proj/tripai/recommendation/service/RecommendationService.java)
